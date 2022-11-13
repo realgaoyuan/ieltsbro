@@ -13,7 +13,7 @@
       },
       "itemList" : [
         {
-          "discountDesc" : "疫情限期特惠",
+          "discountDesc" : "疫情限.期特惠",
           "itemDesc" : "口语答案、写作范文、会员课程、独家题库等你来解锁",
           "skuName" : "120天",
           "itemCount" : 120,
