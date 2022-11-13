@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title><script src=/sf-webproxy/api/vpn-config></script><script src=/sf-webproxy/resource/web_proxy.js?v=1.4.3.83></script>
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" type="text/css" href="css/base.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
+    <link rel="stylesheet" href="./css/toast.css" />
+    <link rel="stylesheet" href="./css/vant.min.css" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <script src="./lib/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="lib/es6-promise.auto.min.js.js"></script>
+    <script type="text/javascript" src="lib/vue.js"></script>
+    <script type="text/javascript" src="lib/axios.js"></script>
+    <script type="text/javascript" src="lib/vant.min.js"></script>
+    <script src="./lib/common.js"></script>
+    <style>
+      .colon {
+        display: inline-block;
+        margin: 0 4px;
+        color: #ee0a24;
+      }
+
+      .block {
+        display: inline-block;
+        width: 22px;
+        color: #fff;
+        font-size: 12px;
+        text-align: center;
+        background-color: #ee0a24;
+      }
+
+      .box {
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        position: fixed;
+        left: 0;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+      }
+
+      h1 {
+        font-size: 2rem;
+        color: red;
+        text-align: center;
+      }
+
+      h1.active {
+        animation: count 0.5s;
+      }
+
+      @keyframes count {
+        from {
+          transform: scale(0.1);
+          opacity: 1;
+        }
+
+        to {
+          transform: scale(1.5);
+          opacity: 0;
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="wx_JSSDKConfig" style="display: none" data-imgUrl="" data-link="">
+      <p></p>
+      <img src="" />
+    </div>
+    <div id="app">
+      <template>
+        <div class="container" style="padding-bottom: 0.6rem">
+          <!-- <div class="box">
+            <h1 style="display: none">3</h1>
+          </div> -->
+          <template>
+            <div class="banner"><img src="./images/banner.jpg?v=1" /></div>
+            <p style="font-size: 0.15rem; color: #c61620; padding: 0.1rem 0.15rem; font-weight: bold">每人每天有一次答题机会。</p>
+            <div class="answer_list">
+              <div class="item" v-for="(item,index) in list" :key="index" style="margin-bottom: 0.15rem">
+                <h3 @click.stop="_chooseItem(item,index)">{{index+ 1}}.{{item.content}}</h3>
+                <p style="padding: 0.05rem 0; color: #333" v-for="(a,i) in item.answer" v-if="a.content">我的答案：{{a.content}}({{a.content == a.answer ? '正确' : '错误'}})</p>
+                <!-- <div class="answer" @click="fadeshow">
+                <p v-for="(val) in item.answer">{{val.answer}}</p>
+              </div> -->
+              </div>
+            </div>
+
+            <van-dialog v-model="show" title="答题" show-cancel-button @confirm="_confirm" @cancel="_cancel">
+              <van-cell-group v-for="(item,index) in column">
+                <van-field ref="focusInput" :autofocus="true" v-model="item.content" placeholder="请输入您的答案" />
+              </van-cell-group>
+            </van-dialog>
+
+            <!-- <div class="top-countdown" style="opacity: 0;position: absolute">
+            <template v-show="timeData.minutes">
+              <span class="top-countdown-label">用时：</span>
+              <van-count-down :time="time" ref="countDown" :auto-start="false" @finish="finish">
+                <template #default="timeData">
+                  <span class="block">{{ timeData.hours }}</span>
+                  <span class="colon">:</span>
+                  <span class="block">{{ timeData.minutes }}</span>
+                  <span class="colon">:</span>
+                  <span class="block">{{ timeData.seconds }}</span>
+                </template>
+              </van-count-down>
+            </template>
+          </div> -->
+
+            <section style="position: fixed; left: 50%; transform: translateX(-50%); bottom: 0.15rem">
+              <div class="top-countdown">
+                <template v-show="timeData.minutes">
+                  <span class="top-countdown-label">用时：{{number}}</span>
+                </template>
+              </div>
+              <div class="btn_jump" style="margin-top: 0.1rem" @click="_confrimSubmit">提交</div>
+            </section>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <script type="text/javascript" src="https://city.shiminjia.com/assets/static/js/qs.min.js"></script>
+    <!-- <script src="https://app.qdszgh.cn/html/login.js" charset="utf-8"></script> -->
+    <script></script>
+    <script>
+      var vue = new Vue({
+        el: '#app',
+        data: {
+          token: '',
+          // host: 'http://www.sdporttest.com'
+          host: 'https://zhgh.sd-port.com',
+          timer: null,
+          list: [],
+          answer: [],
+          show: false,
+          value: '',
+          column: '',
+          timeData: {
+            hours: '0',
+            minutes: '',
+            seconds: '00'
+          },
+          time: '',
+          pid: '',
+          number: 0,
+          totalTime: ''
+        },
+        methods: {
+          GetQueryString(key) {
+            var url = window.location.search
+            // 正则筛选地址栏
+            var reg = new RegExp('(^|&)' + key + '=([^&]*)(&|$)')
+            // 匹配目标参数
+            var result = url.substr(1).match(reg)
+            console.log('result', result)
+            //返回参数值
+            return result ? result[2] : ''
+          },
+
+          getData() {
+            let _this = this
+            axios.get(this.host + '/api/dt_topic/list').then(res => {
+              $('.box').hide()
+              if (res.data.errcode == 0) {
+                this.$nextTick(() => {
+                  // console.log(this.$refs.countDown)
+                  // _this.$refs.countDown.start();
+                  _this.start()
+                })
+                this.list = res.data.data
+                this.list.forEach((item, index) => {
+                  item.answer.forEach(val => {
+                    this.answer.push({
+                      pid: item.pid,
+                      answer_id: val.answer_id,
+                      content: ''
+                    })
+                  })
+                })
+              } else {
+                this.$toast(res.data.errmsg)
+              }
+            })
+          },
+          _chooseItem(item, index) {
+            let _this = this
+            this.pid = item.pid
+            this.column = item.answer
+            this.show = true
+          },
+          _confirm() {
+            for (var i = 0; i < this.answer.length; i++) {
+              for (var j = 0; j < this.column.length; j++) {
+                if (this.answer[i].pid == this.pid) {
+                  if (this.answer[i].answer_id == this.column[j].answer_id) {
+                    this.answer[i].content = this.column[j].content
+                  }
+                }
+              }
+            }
+            this.column = ''
+            this.show = false
+          },
+          _cancel() {
+            this.show = false
+          },
+          timeToSec() {
+            var hour = this.$refs.countDown.timeData.hours
+            var min = this.$refs.countDown.timeData.minutes
+            var sec = this.$refs.countDown.timeData.seconds
+            var s = Number(hour * 3600) + Number(min * 60) + Number(sec)
+            return s * 1000
+          },
+          _confrimSubmit() {
+            let _this = this
+            // this.$refs.countDown.pause();
+            this.stop()
+            this.$dialog
+              .confirm({
+                title: '提示',
+                message: '确认提交试卷吗？'
+              })
+              .then(() => {
+                _this.submit()
+              })
+              .catch(() => {
+                // _this.$refs.countDown.start();
+                if (_this.number != 0) {
+                  _this.start()
+                }
+              })
+          },
+          submit() {
+            let form = {
+              answer: JSON.stringify(this.answer),
+              // time: (this.time - this.timeToSec()) / 1000,
+              time: 61
+            }
+
+            console.log(form)
+            // return
+
+            axios.post(this.host + '/api/dt_topic/submit', Qs.stringify(form)).then(res => {
+              if (res.data.errcode == 0) {
+                this.stop()
+                this.$dialog
+                  .alert({
+                    message: '您获得分数为：' + res.data.data.achievement
+                  })
+                  .then(() => {
+                    // on close
+                    window.location.href = './index.html'
+                  })
+              } else {
+                show_error(res.data.errmsg)
+              }
+            })
+          },
+          finish() {
+            this.$toast('倒计时结束,即将自动交卷...')
+            this.submit()
+          },
+          // 倒计时
+          djs(cb) {
+            var totalTime = 3
+            var that = this
+            this.timer = setInterval(() => {
+              if (totalTime > 0) {
+                seconds = Math.floor(totalTime % 60) // 秒
+                // 用变量保存要显示的所有内容
+                that.$toast(totalTime)
+                // 友情提示
+                //    totalTime == 5 * 20 && alert('注意，还有5分钟!');
+                --totalTime
+              } else {
+                clearInterval(that.timer) // 停止调用函数
+                that.$toast('开始答题！')
+                cb()
+              }
+            }, 1000) // 以毫秒为单位，每 1 秒调用一次 CountDown()
+          },
+          fadeshow() {
+            $('.answer').click(function () {
+              $(this).addClass('show')
+            })
+          },
+          start: function () {
+            let _this = this
+            this.totalTime = setInterval(function () {
+              _this.number++
+            }, 1000)
+          },
+          stop: function () {
+            clearInterval(this.totalTime)
+          },
+          beforeunloadFn(e) {
+            console.log('刷新或关闭')
+            this.stop()
+            this.number = 0
+            this.totalTime = null
+            // ...
+          }
+        },
+        created: function () {
+          var token = this.GetQueryString('token')
+          if (token) {
+            localStorage.setItem('token', token)
+          }
+          this.token = localStorage.getItem('token') ? localStorage.getItem('token') : ''
+
+          if (this.token) {
+            axios.defaults.headers.common['AUTHORIZATION'] = this.token
+            this.getData()
+          } else {
+            window.location.href = 'https://zhgh.sd-port.com/api/dt_topic/auth'
+          }
+
+          let _this = this
+          if (navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1) {
+          }
+        },
+        mounted: function () {
+          // this.djs(() => {
+          // this.getData()
+          // })
+
+          this.timeData.minutes = 100
+          this.time = 100 * 60 * 1000
+
+          let _this = this
+          let NUMBER = 1
+          let COUNT = 3
+          let COLORS = ['#8c00ff', '#006bff', '#4fff00', '#ffb800', '#ff0000']
+          let timer = null
+          function $(str) {
+            return document.querySelector(str)
+          }
+          function actionNum() {
+            let h1 = $('h1')
+            $('h1').style.display = 'block'
+            timer = setInterval(() => {
+              COUNT--
+              NUMBER++
+              if (COUNT >= 0) {
+                h1.classList.remove('active')
+                setTimeout(() => {
+                  let num = Math.floor(Math.random() * 5)
+                  if (COUNT != 0) {
+                    h1.innerText = COUNT
+                  } else {
+                    h1.innerText = '开始答题'
+                    h1.style.fontSize = '0.5rem'
+                  }
+                  h1.style.color = COLORS[num]
+                  h1.classList.add('active')
+                }, 100)
+              } else {
+                clearInterval(timer)
+              }
+            }, 1000)
+          }
+          // actionNum()
+
+          //添加监听事件
+          window.addEventListener('beforeunload', e => this.beforeunloadHandler(e))
+
+          document.addEventListener('visibilitychange', function (e) {
+            console.log(document.visibilityState)
+            let state = document.visibilityState
+            if (state == 'hidden') {
+              console.log(document.visibilityState, '用户离开了')
+              this.stop()
+            }
+            if (state == 'visible') {
+              console.log(document.visibilityState, '回来了')
+              this.start()
+            }
+          })
+
+          // this.$nextTick(() => {
+          //   this.$refs.focusInput.focus()
+          // });
+        },
+        destroyed() {
+          this.stop()
+          this.number = 0
+          this.totalTime = null
+        }
+      })
+    </script>
+
+    <script type="text/javascript">
+      // Gh_ReportActivity(function (data) {
+
+      // });
+    </script>
+    <script src="https://res2.wx.qq.com/open/js/jweixin-1.4.0.js" charset="utf-8"></script>
+    <script src="https://zhqd.shiminjia.com/weixin/jssdk/index.php?app=qdszgh" charset="utf-8"></script>
+  </body>
+</html>
