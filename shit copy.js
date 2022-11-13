@@ -2,18 +2,18 @@
   "status" : 0,
   "message" : "success",
   "content" : {
-    "username" : "Ashley2022",
+    "username" : "必过12fHo273",
     "userGrade" : 1,
     "medalNumber" : "0",
     "userRoleTypeStr" : "普通用户",
-    "practiceNumberStr" : "31",
+    "practiceNumberStr" : "1",
     "ifMember" : true,
     "attentionNumberStr" : "0",
     "vipExpireDate" : "2023-11-11T21:36:50.000+0800",
     "attentionState" : null,
     "sex" : "保密",
-    "background" : "https://static.ieltsbro.com/uploads/app_user/avatar/1662818795660176227/1662818795859.jpg",
-    "ifHasPartner" : true,
+    "background" : "https://static.ieltsbro.com/uploads/app_user/avatar/1666963084919158186/1666963085151.jpg",
+    "ifHasPartner" : false,
     "dynamicsNumberStr" : "0",
     "ifApprove" : false,
     "teacherWxNum" : null,
@@ -22,9 +22,9 @@
     "userRoleType" : 1,
     "ifLoginUser" : true,
     "teacherDesc" : null,
-    "avatar" : "https://static.ieltsbro.com/uploads/app_user/avatar/1662818795660176227/1662818795859.jpg",
-    "userLuckyValue" : 920,
-    "userId" : "1662818795660176227"
+    "avatar" : "https://static.ieltsbro.com/uploads/app_user/avatar/1666963084919158186/1666963085151.jpg",
+    "userLuckyValue" : 200,
+    "userId" : "1666963084919158186"
   },
   "showMessage" : null
 }
