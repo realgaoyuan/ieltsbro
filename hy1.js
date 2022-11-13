@@ -23,7 +23,7 @@
           "ifRecommendItem" : true,
           "tag" : "超值推荐",
           "price" : 1,
-          "iosLink" : "com.yasBro.v2.vip120.258rmb",
+          "iosLink" : "com.yasBro.v2.vip120.218rmb",
           "itemCode" : "VVIP20210901191055808811",
           "originalPrice" : 1,
           "payType" : "1_2_3",
